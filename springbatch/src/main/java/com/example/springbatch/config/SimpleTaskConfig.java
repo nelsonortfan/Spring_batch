@@ -1,5 +1,6 @@
 package com.example.springbatch.config;
 
+import com.example.springbatch.service.SecondTasklet;
 import com.example.springbatch.task.SimpleTask;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -15,13 +16,19 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class SimpleTaskConfig {
     @Autowired
     private SimpleTask simpleTask;
+
+    @Autowired
+    private SecondTasklet secondTasklet;
     private final String SIMPLE_JOB = "Simple job of Nelson";
     private final String SIMPLE_TASK = "Simple task of mine";
+
+    private final String SECOND_TASK = "Second simple task of mine";
     @Bean
-    public Job simpleTaskJob(JobRepository jobRepository, Step simpleTaskStep){
+    public Job simpleTaskJob(JobRepository jobRepository, Step simpleTaskStep, Step secondTaskStep){
         return new JobBuilder(SIMPLE_JOB,jobRepository)
-                .start(simpleTaskStep)
-                .build();
+               .start(simpleTaskStep)
+               .next(secondTaskStep)
+               .build();
     }
     @Bean
     public Step simpleTaskStep(JobRepository jobRepository, PlatformTransactionManager platformTransactionManager){
@@ -30,4 +37,13 @@ public class SimpleTaskConfig {
                 .allowStartIfComplete(true)
                 .build();
     }
+
+    @Bean
+    public Step secondTaskStep(JobRepository jobRepository, PlatformTransactionManager platformTransactionManager){
+        return new StepBuilder(SECOND_TASK, jobRepository)
+                .tasklet(secondTasklet, platformTransactionManager)
+                .allowStartIfComplete(true)
+                .build();
+    }
+
 }
